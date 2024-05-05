@@ -1,5 +1,4 @@
 import pygame, sys
-from data import *
 from level import Level
 
 class Game:
@@ -34,14 +33,16 @@ class Game:
                         charChoose = True
                     elif lisa.collidepoint(pos):
                         self.chosenChar = "lisa"
+                        self.level = Level(self.chosenChar)
                         isRunning = True
                         charChoose = False
-                        self.level = Level(self.chosenChar)
+                        
                     elif willie.collidepoint(pos):
                         self.chosenChar = "willie"
+                        self.level = Level(self.chosenChar)
                         isRunning = True
                         charChoose = False
-                        self.level = Level(self.chosenChar)
+                        
 
             if isRunning == False:
                 self.screen.blit(menu, (0, 0))

@@ -30,14 +30,7 @@ class Player(CharacterBase):
         self.slow_time = None
         self.can_slow_walk = True
         self.isVisible = True
-        self.items = {
-            "small_hp_potion": {
-                "cooldown": 1000,
-                "start_amount": 3,
-                "strength": 30,
-                "design": "img\items\small_hp_potion",
-            }
-        }
+        self.items = items
         self.item_index = 0
         self.pot_amount = list(self.items.values())[self.item_index]["start_amount"]
         self.sound_made = 0

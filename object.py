@@ -1,6 +1,4 @@
 import pygame
-from data import *
-
 
 class Object(pygame.sprite.Sprite):
     def __init__(self, pos, groups, sprite_type, surface=pygame.Surface((64, 64))):

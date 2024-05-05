@@ -115,6 +115,7 @@ class HostileNPC(CharacterBase):
         else:
             self.image.set_alpha(255)
 
+    #cooldowns
     def cds(self):
         current_time = pygame.time.get_ticks()
         if not self.can_attack:

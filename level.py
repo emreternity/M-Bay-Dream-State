@@ -158,10 +158,12 @@ class Level:
 
     def checkIfPlayerDead(self,player):
         if player.hp <= 0:
+            print('Ded x_x')
             exit()
     
     def checkIfLevelComplete(self,player):
         if player.xp == 350:
+            player('Level completed! yay')
             exit()
 
     def run(self):

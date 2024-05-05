@@ -8,7 +8,7 @@ class UI:
         self.font = pygame.font.Font("other\ealagard.ttf", 18)
 
         self.hpRect = pygame.Rect(10, 10, 200, 20)
-        self.nrgRect = pygame.Rect(10, 34, 140, 20)
+        self.nrgRect = pygame.Rect(10, 34, 200, 20)
 
         self.wpnFiles = []
         for weapon in weapons.values():
