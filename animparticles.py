@@ -12,6 +12,11 @@ class AnimPlayer:
             "heal": import_folder("img\particles\heal/frames"),
             "eyeman": import_folder("img\particles\hnpc_death"),
             "earman": import_folder("img\particles\hnpc_death"),
+            "final-boss": import_folder("img\particles/hnpc_death"),
+            "crate_piece": import_folder("img\particles\crate_piece"),
+            "spawn_pot": import_folder("img\particles\spawn_pot"),
+            "mimic": import_folder("img\particles\mimic"),
+            "slime" : import_folder("img\particles\slime")
         }
 
     def flipAnimIMGs(self, frames):

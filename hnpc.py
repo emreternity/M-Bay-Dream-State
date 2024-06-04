@@ -1,7 +1,6 @@
 import pygame
 from data import *
 from basechar import CharacterBase
-
 from random import randint
 
 
@@ -16,9 +15,10 @@ class HostileNPC(CharacterBase):
         self.image = self.animations[self.status][self.framei]
 
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(-20, -20)
+        self.hitbox = self.rect.inflate(0,0)
         self.obs_sprites = obs_sprites
 
+        self.deathsfx = pygame.mixer.Sound("sound\sfx\medwpn_scrape_hit_flesh_09.wav")
         self.hnpc_type = hnpc_type
         hnpc_info = hnpc[self.hnpc_type]
         self.hp = hnpc_info["hp"]
@@ -30,16 +30,20 @@ class HostileNPC(CharacterBase):
         self.chase_rad = hnpc_info["chase_rad"]
         self.attack_type = hnpc_info["attack_type"]
         self.addXP = addXP
-
         self.can_attack = True
         self.atk_time = None
-        self.atk_cd = 400
+        self.atk_cd = 3000
         self.dmgPlayer = dmgPlayer
         self.execDeathParticles = execDeathParticles
 
         self.vulnerable = True
         self.hit_time = None
         self.invi_dur = 300
+
+        self.att_sfx = pygame.mixer.Sound(hnpc_info["attack_sound"])
+        self.att_sfx.set_volume(0.5)
+
+        self.earman_chase_sfx = pygame.mixer.Sound("sound\sfx/recording-31-5-2024 16_01_54.wav")
 
     def importGraphics(self, name):
         self.animations = {"idle": [], "move": [], "attack": [], "random": []}
@@ -63,12 +67,15 @@ class HostileNPC(CharacterBase):
             if self.status != "attack":
                 self.framei = 0
             self.status = "attack"
+            self.att_sfx.play()
         elif (
             distance <= self.chase_rad
             and self.hnpc_type == "eyeman"
             and player.isVisible
         ):
+            
             self.status = "move"
+            
         elif (
             distance <= self.dmg_rad
             and self.can_attack
@@ -77,7 +84,11 @@ class HostileNPC(CharacterBase):
         ):
             if self.status != "attack":
                 self.framei = 0
+            
+
+            self.earman_chase_sfx.play()
             self.status = "attack"
+            self.att_sfx.play()
         elif (
             distance <= player.sound_made * self.chase_rad
             and self.hnpc_type == "earman"
@@ -85,6 +96,16 @@ class HostileNPC(CharacterBase):
             self.status = "move"
         elif self.hnpc_type == "earman":
             self.status = "random"
+        elif distance <= self.dmg_rad and self.can_attack and self.hnpc_type == "final-boss":
+            if self.status != "attack":
+                self.framei = 0
+            self.status = "attack"
+            self.att_sfx.play()
+        elif (
+            distance <= self.chase_rad
+            and self.hnpc_type == "final-boss"
+        ): self.status = "move"
+
         else:
             self.status = "idle"
 
@@ -137,11 +158,14 @@ class HostileNPC(CharacterBase):
         self.hit_time = pygame.time.get_ticks()
         self.vulnerable = False
 
+
+
     def checkIfDead(self):
         if self.hp <= 0:
             self.kill()
             self.execDeathParticles(self.rect.center, self.hnpc_type)
             self.addXP(self.xp)
+            self.deathsfx.play()
 
     def hnpcKnockback(self):
         if not self.vulnerable:

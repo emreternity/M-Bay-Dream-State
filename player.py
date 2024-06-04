@@ -2,7 +2,6 @@ import pygame
 from data import *
 from basechar import CharacterBase
 
-
 class Player(CharacterBase):
     def __init__(
         self, pos, groups, obs_sprites, spawnAtk, despawnAtk, spawnSkill, char
@@ -12,7 +11,7 @@ class Player(CharacterBase):
         self.image = pygame.image.load(self.char_imgpath).convert()
         self.rect = self.image.get_rect(topleft=pos)
         self.char = char
-        self.hitbox = self.rect.inflate(-20, -20)
+        self.hitbox = self.rect.inflate(HITBOX_OFFSET['player'])
         self.loadPlayerFiles()
         self.status = "down"
         self.isAttacking = False
@@ -40,10 +39,18 @@ class Player(CharacterBase):
         self.canSwitchSkill = True
         self.skillSwitchTime = None
         self.spawnSkill = spawnSkill
+        self.heartBeatSFX = pygame.mixer.Sound("sound\sfx/564013__rlkhafi__heart_beat.wav")
+        self.can_heartbeat = True
+        self.whooshSFX = pygame.mixer.Sound("sound\sfx/blade_whoosh_06.wav")
+        self.whooshSFX.set_volume(0.7)
+
+
+        
+        self.heartbeat_time = pygame.time.get_ticks()
 
         self.stats = {
             "hp": 100,
-            "energy": 60,
+            "energy": 250,
             "attack": 10,
             "skill": 4,
             "speed": 4,
@@ -54,7 +61,7 @@ class Player(CharacterBase):
         self.energy = self.stats["energy"]
         self.xp = 0
         self.speed = self.stats["speed"]
-
+        self.heartbeat_cd = 100000 * (1/self.hp)
         self.vulnerable = True
         self.hurt_time = None
         self.invulnerability_duration = 500
@@ -78,10 +85,10 @@ class Player(CharacterBase):
         for animation in self.animations.keys():
             full_path = character_path + animation
             self.animations[animation] = import_folder(full_path)
-
     def input(self):
+        keys = pygame.key.get_pressed()
         if not self.isAttacking:
-            keys = pygame.key.get_pressed()
+            
 
             if keys[pygame.K_ESCAPE]:
                 if self.pauseGame == False:
@@ -109,7 +116,7 @@ class Player(CharacterBase):
                 self.speed = self.stats["sprint_speed"]
                 self.anim_speed = 0.25
                 if self.energy > 0:
-                    self.energy -= 0.15
+                    self.energy -= 0.50
             elif keys[pygame.K_UP] or keys[pygame.K_w] and self.slow_walking:
                 self.direction.y = -1
                 self.status = "up"
@@ -135,7 +142,7 @@ class Player(CharacterBase):
                 self.speed = self.stats["sprint_speed"]
                 self.anim_speed = 0.25
                 if self.energy > 0:
-                    self.energy -= 0.15
+                    self.energy -= 0.50
             elif keys[pygame.K_DOWN] or keys[pygame.K_s] and self.slow_walking:
                 self.direction.y = 1
                 self.status = "down"
@@ -165,7 +172,7 @@ class Player(CharacterBase):
                 self.anim_speed = 0.25
                 self.speed = self.stats["sprint_speed"]
                 if self.energy > 0:
-                    self.energy -= 0.15
+                    self.energy -= 0.50
 
             elif keys[pygame.K_RIGHT] or keys[pygame.K_d] and self.slow_walking:
                 self.direction.x = 1
@@ -193,7 +200,7 @@ class Player(CharacterBase):
                 self.anim_speed = 0.25
                 self.speed = self.stats["sprint_speed"]
                 if self.energy > 0:
-                    self.energy -= 0.15
+                    self.energy -= 0.50
 
             elif keys[pygame.K_LEFT] or keys[pygame.K_a] and self.slow_walking:
                 self.direction.x = -1
@@ -218,6 +225,7 @@ class Player(CharacterBase):
                     self.sound_made = 5
                     self.atk_time = pygame.time.get_ticks()
                     self.energy -= 20
+                    self.whooshSFX.play()
                     self.spawnAtk()
 
             if keys[pygame.K_q]:
@@ -248,6 +256,11 @@ class Player(CharacterBase):
                     self.skill = list(skills.keys())[self.skilli]
                 else:
                     self.skilli = len(list(skills.keys())) - 1
+            if self.can_heartbeat:
+                self.heartbeat_time = pygame.time.get_ticks()
+                self.can_heartbeat = False
+                self.heartBeatSFX.set_volume(0.45)
+                self.heartBeatSFX.play()
 
     def getStatus(self):
         if self.direction.x == 0 and self.direction.y == 0:
@@ -280,6 +293,11 @@ class Player(CharacterBase):
             if current_time - self.slow_time >= 200:
                 self.can_slow_walk = True
 
+        if not self.can_heartbeat:
+            if current_time - self.heartbeat_time >= self.heartbeat_cd:
+                self.can_heartbeat = True
+                
+
         if not self.can_switch_weapon:
             if current_time - self.weapon_switch_time >= self.switch_duration_cooldown:
                 self.can_switch_weapon = True
@@ -297,8 +315,8 @@ class Player(CharacterBase):
         self.framei += self.anim_speed
         if self.framei >= len(animation):
             self.framei = 0
-
         self.image = animation[int(self.framei)]
+                
         self.rect = self.image.get_rect(center=self.hitbox.center)
 
         if not self.vulnerable:
@@ -319,13 +337,13 @@ class Player(CharacterBase):
 
     def energy_recovery(self):
         if self.energy < self.stats["energy"]:
-            self.energy += 0.01 * self.stats["skill"]
+            self.energy += 0.05 * self.stats["skill"]
         else:
             self.energy = self.stats["energy"]
 
     def energy_deprive(self):
         if self.energy > 0 and self.isVisible == False:
-            self.energy -= 0.05 * self.stats["skill"]
+            self.energy -= 0.10 * self.stats["skill"]
 
     def energy_depleted(self):
         if self.energy <= 1:

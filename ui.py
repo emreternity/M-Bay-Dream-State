@@ -1,7 +1,6 @@
 import pygame
 from data import *
 
-
 class UI:
     def __init__(self):
         self.display_surface = pygame.display.get_surface()
@@ -9,6 +8,11 @@ class UI:
 
         self.hpRect = pygame.Rect(10, 10, 200, 20)
         self.nrgRect = pygame.Rect(10, 34, 200, 20)
+
+        self.bloodyscr = pygame.image.load("img/bloody.png").convert_alpha()
+        self.redscr = pygame.image.load("img/red.png").convert_alpha()
+        
+
 
         self.wpnFiles = []
         for weapon in weapons.values():
@@ -43,6 +47,23 @@ class UI:
         self.display_surface.blit(text_surf, text_rect)
         pygame.draw.rect(self.display_surface, "#0a0000", text_rect.inflate(20, 20), 3)
 
+    def spawnPotText(self, skilli, pot_amount):
+        if skilli == 0:
+                text_sent = f"{str(int(pot_amount))}"
+                text_surf = self.font.render(text_sent, False, "#fc6d6d")
+                text_rect = text_surf.get_rect(topleft=(1160, 680))
+                pygame.draw.rect(self.display_surface, "#1f0101", text_rect.inflate(20, 20))
+                self.display_surface.blit(text_surf, text_rect)
+                pygame.draw.rect(self.display_surface, "#0a0000", text_rect.inflate(20, 20), 3)
+
+    def spawnBloodyScreen(self,hp):
+        ratio = hp * 255 / 100
+        if (hp != 100):
+            self.redscr.set_alpha(255-ratio)
+            self.bloodyscr.set_alpha(255-ratio)
+            
+
+
     def activeBorder(self, left, top, has_switched):
         bg_rect = pygame.Rect(left, top, 80, 80)
         pygame.draw.rect(self.display_surface, "#1f0101", bg_rect)
@@ -67,11 +88,21 @@ class UI:
         magic_rect = magic_surf.get_rect(center=bg_rect.center)
         self.display_surface.blit(magic_surf, magic_rect)
 
+
+    def deathDisplay(self,player):
+        self.display_surface.blit(self.redscr, (0, 0))
+        self.redscr.set_alpha(0)
+        self.display_surface.blit(self.bloodyscr, (0, 0))
+        self.bloodyscr.set_alpha(0)
+        self.spawnBloodyScreen(player.hp)
+
     def display(self, player):
         self.spawnBar(player.hp, player.stats["hp"], self.hpRect, "#7a1414")
         self.spawnBar(player.energy, player.stats["energy"], self.nrgRect, "#53147a")
 
-        self.spawnXPText(player.xp)
+        self.spawnPotText(player.skilli,player.pot_amount)
+
+        
 
         self.weaponHUDimg(player.weaponi, not player.can_switch_weapon)
         self.skillHUDimg(player.skilli, not player.canSwitchSkill, player.pot_amount)
